@@ -1,0 +1,8 @@
+version: '3.8'
+
+services:
+  pqc_ssh:
+    build: .
+    container_name: pqc_ssh
+    ports:
+      - "2222:22"
