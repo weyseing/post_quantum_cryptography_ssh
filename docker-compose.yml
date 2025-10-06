@@ -1,8 +1,27 @@
-version: '3.8'
+# docker-compose.yml
 
+version: "3.9"
 services:
-  pqc_ssh:
+  ssh_server_classic:
     build: .
-    container_name: pqc_ssh
+    container_name: ssh_server_classic
+    command: ["/scripts/start_classic.sh"]
+    volumes:
+      - ./scripts:/scripts
     ports:
       - "2222:22"
+
+  ssh_server_pqc:
+    build: .
+    container_name: ssh_server_pqc
+    command: ["/scripts/start_pqc.sh"]
+    volumes:
+      - ./scripts:/scripts
+    ports:
+      - "2223:22"
+
+  ssh_client:
+    build: .
+    container_name: ssh_client
+    volumes:
+      - ./scripts:/scripts
