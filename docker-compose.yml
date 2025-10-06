@@ -10,6 +10,8 @@ services:
       - ./scripts:/scripts
     ports:
       - "2222:22"
+    networks:
+      - global-net
 
   ssh_server_pqc:
     build: .
@@ -19,9 +21,19 @@ services:
       - ./scripts:/scripts
     ports:
       - "2223:22"
+    networks:
+      - global-net
 
   ssh_client:
     build: .
     container_name: ssh_client
+    command: ["tail", "-f", "/dev/null"]
     volumes:
       - ./scripts:/scripts
+      - ./tmp:/tmp
+    networks:
+      - global-net
+
+networks:
+  global-net:
+    external: true
