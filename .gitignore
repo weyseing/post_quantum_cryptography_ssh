@@ -1,1 +1,2 @@
-tmp/*.pcap
+tmp/
+!tmp/.gitkeep
