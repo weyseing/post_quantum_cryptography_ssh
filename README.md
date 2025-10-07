@@ -11,8 +11,7 @@
     - Both client & server compute hash (H) the handshake data
     - Server generate signature from hash (H) with private host key
     - Client verify signature from hash (H) with public host key `First saved to (~/.ssh/known_hosts)`
-- **Encryption channel** started after session key is established from Shared Secret (K)
-
+- **Encryption channel** started after **session key** is established from Shared Secret (K)
 
 ### User Authentication Protocol: -
 - **Password auth:**
@@ -21,8 +20,8 @@
 - **Public Key auth:**
     - SSH Client requests authentication with its public key
     - SSH Server checks if the public key is allowed (~/.ssh/authorized_keys)
-    - SSH Client signs a blob including session ID + request using its private key
-    - SSH Server verifies the signature using the client’s public key
+    - SSH Client sign a blob (session ID + message) using its private key
+    - SSH Server verify the signature using the public key
 
 ### Connection Protocol: -
 - This support for `SHELL`, `COMMAND` and `SFTP`
@@ -34,7 +33,7 @@
 - **Client display:** Your client receives the packet, verifies its MAC, decrypts it, and displays the output on your terminal. 
 
 
-# Set SSH Key Exchange Algo
+# Set Key Exchange Algo
 - **Configure settings**
 ```shell
 # set for classic
