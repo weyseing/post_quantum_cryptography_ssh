@@ -1,13 +1,18 @@
 # SSH Process
 
 ### Transport Layer Protocol: -
-- **Key Exchange algorithm:** SSH Server & Client negotiate for KEYEX
-- **Shared Session Key:** 
+- **Key Exchange algorithm:** SSH Server & Client aligned for Key Exchange algo
+- **Shared Secret (K):** 
     - SSH Client generate temporary **random number a** and calculates a **public value A** to send to the server.
     - SSH Server generates temporary **random number b** and calculates a **public value B** to send to the client.
     - They both calculate **shared secret, (K)**. Client calculates `(B^{a} (mod p))`. Server calculates `(A^{b} (mod p))`. The result is the same: `(K=g^{ab} (mod p))`.
-- **Server auth** for check server having private key and session key
-- **Encryption channel** started
+- **Server authentication** to check if valid server host
+    - Server send public host key to client (first time only)
+    - Both client & server compute hash (H) the handshake data
+    - Server generate signature from hash (H) with private host key
+    - Client verify signature from hash (H) with public host key `First saved to (~/.ssh/known_hosts)`
+- **Encryption channel** started after session key is established from Shared Secret (K)
+
 
 ### User Authentication Protocol: -
 - **Password auth:**
