@@ -3,7 +3,9 @@
 version: "3.9"
 services:
   ssh_server_classic:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: ssh_server_classic
     command: ["/scripts/start_classic.sh"]
     volumes:
@@ -14,7 +16,9 @@ services:
       - global-net
 
   ssh_server_pqc:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: ssh_server_pqc
     command: ["/scripts/start_pqc.sh"]
     volumes:
@@ -25,12 +29,40 @@ services:
       - global-net
 
   ssh_client:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: ssh_client
     command: ["tail", "-f", "/dev/null"]
     volumes:
       - ./scripts:/scripts
       - ./tmp:/tmp
+    networks:
+      - global-net
+
+  toy_server:
+    build:
+      context: .
+      dockerfile: Dockerfile_toy_ssh
+    container_name: toy_server
+    volumes:
+      - ./demo_shared:/app
+    command: ["python", "server.py"]
+    ports:
+      - "2222:2222"
+    networks:
+      - global-net
+
+  toy_client:
+    build:
+      context: .
+      dockerfile: Dockerfile_toy_ssh
+    container_name: toy_client
+    depends_on:
+      - toy_server
+    volumes:
+      - ./demo_shared:/app
+    command: ["bash", "-c", "sleep 1 && python client.py"]
     networks:
       - global-net
 

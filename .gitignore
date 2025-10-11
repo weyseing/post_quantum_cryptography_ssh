@@ -1,2 +1,5 @@
 tmp/
 !tmp/.gitkeep
+
+demo_shared/*.pem
+demo_shared/*.hex
