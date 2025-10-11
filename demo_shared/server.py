@@ -11,14 +11,14 @@ import os
 HOST = "0.0.0.0"
 PORT = 2222
 
-# Create ephemeral ECDH keypair (server side)
+# create ephemeral ECDH keypair (server side)
 server_priv = ec.generate_private_key(ec.SECP256R1())
 server_pub = server_priv.public_key().public_bytes(
     encoding=serialization.Encoding.X962,
     format=serialization.PublicFormat.UncompressedPoint
 )
 
-# Persist server private (lab-only) so you can later derive key
+# persist server ephemeral private so can later derive key
 with open("/app/server_priv.pem", "wb") as f:
     f.write(server_priv.private_bytes(
         encoding=serialization.Encoding.PEM,
@@ -26,16 +26,15 @@ with open("/app/server_priv.pem", "wb") as f:
         encryption_algorithm=serialization.NoEncryption()
     ))
 
-# Also write server public so wrapper could read it if needed
+# write server ephemeral public so wrapper could read it if needed
 with open("/app/server_pub.hex", "wb") as f:
     f.write(binascii.hexlify(server_pub))
-
 print("=== SERVER (lab) ===")
 print("Server ephemeral private key saved to /app/server_priv.pem (lab-only)")
 print("Server ephemeral public (hex):", binascii.hexlify(server_pub).decode())
 print("====================\n")
 
-# Simple TCP server to receive client's public and ciphertext
+# simple TCP server to receive client's public and ciphertext
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.bind((HOST, PORT))
 s.listen(1)
@@ -56,29 +55,30 @@ with conn:
     if len(payload) < 3:
         print("Received payload doesn't contain expected 3 lines, received:", payload)
     else:
+        # client public key, nonce, ciphertext
         client_pub_hex = payload[0].strip()
         nonce_hex = payload[1].strip()
         ciphertext_hex = payload[2].strip()
 
         print("Harvested (from network):")
-        print(" Client ephemeral public (hex):", client_pub_hex)
-        print(" Nonce (hex):", nonce_hex)
-        print(" Ciphertext+tag (hex):", ciphertext_hex)
+        print("- Client ephemeral public (hex):", client_pub_hex)
+        print("- Nonce (hex):", nonce_hex)
+        print("- Ciphertext+tag (hex):", ciphertext_hex)
 
         client_pub_bytes = binascii.unhexlify(client_pub_hex)
         nonce = binascii.unhexlify(nonce_hex)
         ciphertext = binascii.unhexlify(ciphertext_hex)
 
-        # Load client's public key from X9.62 uncompressed point
+        # load client's public key from X9.62 uncompressed point
         client_pub = ec.EllipticCurvePublicKey.from_encoded_point(ec.SECP256R1(), client_pub_bytes)
 
-        # Derive shared secret and session key
+        # derive shared secret and session key
         shared = server_priv.exchange(ec.ECDH(), client_pub)
         hkdf = HKDF(algorithm=hashes.SHA256(), length=32, salt=None, info=b"toy-ssh-session")
         session_key = hkdf.derive(shared)
         print("\nDerived session key (hex) (logged on server):", binascii.hexlify(session_key).decode())
 
-        # Decrypt
+        # decrypt
         aesgcm = AESGCM(session_key)
         plaintext = aesgcm.decrypt(nonce, ciphertext, associated_data=None)
         print("\nDecrypted plaintext (server):", plaintext.decode())
