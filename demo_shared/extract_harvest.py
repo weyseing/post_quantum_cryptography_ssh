@@ -1,11 +1,4 @@
 #!/usr/bin/env python3
-"""
-extract_harvest.py
-Reassemble simple TCP payloads in pcap and extract our 3-line client->server payload:
-  client_pub_hex
-  nonce_hex
-  ciphertext_hex
-"""
 import sys, os, re
 from scapy.all import rdpcap, TCP, Raw, IP
 import argparse

@@ -28,20 +28,20 @@ echo "2) Starting toy_server (detached)..."
 docker compose up -d toy_server
 
 # wait for non-empty server_pub.hex and copy it reliably via docker cp
-echo "3) Waiting for server to create non-empty /app/server_pub.hex..."
+echo "3) Waiting for server to create non-empty /app/tmp/server_pub.hex..."
 TRIES=0
 MAX_TRIES=20
 while [ $TRIES -lt $MAX_TRIES ]; do
-  if docker exec "$SERVER_CONTAINER" test -s /app/server_pub.hex >/dev/null 2>&1; then
-    docker cp "${SERVER_CONTAINER}:/app/server_pub.hex" "${SHARED_DIR}/server_pub.hex"
-    echo "Server public hex copied to ${SHARED_DIR}/server_pub.hex"
+  if docker exec "$SERVER_CONTAINER" test -s /app/tmp/server_pub.hex >/dev/null 2>&1; then
+    docker cp "${SERVER_CONTAINER}:/app/tmp/server_pub.hex" "${HNDL_DIR}/server_pub.hex"
+    echo "Server public hex copied to ${HNDL_DIR}/server_pub.hex"
     break
   fi
   TRIES=$((TRIES+1))
   sleep 1
 done
 if [ $TRIES -ge $MAX_TRIES ]; then
-  echo "ERROR: timed out waiting for non-empty /app/server_pub.hex - show recent server logs:"
+  echo "ERROR: timed out waiting for non-empty /app/tmp/server_pub.hex - show recent server logs:"
   docker logs --tail 200 "$SERVER_CONTAINER"
   exit 1
 fi
@@ -124,12 +124,12 @@ docker exec --user root "$SERVER_CONTAINER" python /app/extract_harvest.py "${PC
 echo "10) Copying harvested files and server private key to host..."
 docker cp "${SERVER_CONTAINER}:/app/tmp/harvested_client_pub.hex" "${HNDL_DIR}/harvested_client_pub.hex" || true
 docker cp "${SERVER_CONTAINER}:/app/tmp/harvested_cipher.hex" "${HNDL_DIR}/harvested_cipher.hex" || true
-docker cp "${SERVER_CONTAINER}:/app/server_priv.pem" "${HNDL_DIR}/server_priv.pem" || true
+docker cp "${SERVER_CONTAINER}:/app/tmp/server_priv.pem" "${HNDL_DIR}/server_priv.pem" || true
 
 echo "Files in $HNDL_DIR:"
 ls -l "$HNDL_DIR" || true
 
 echo "11) Running decrypt (attacker simulation) on host..."
-python3 "${DEMO_DIR}/decrypt.py" "${HNDL_DIR}/server_priv.pem" "${HNDL_DIR}/harvested_client_pub.hex" "${HNDL_DIR}/harvested_cipher.hex"
+python3 "${SHARED_DIR}/decrypt.py" "${HNDL_DIR}/server_priv.pem" "${HNDL_DIR}/harvested_client_pub.hex" "${HNDL_DIR}/harvested_cipher.hex"
 
 echo ">>> Demo finished. Check $HNDL_DIR for artifacts."

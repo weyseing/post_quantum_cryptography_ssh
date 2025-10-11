@@ -19,7 +19,7 @@ server_pub = server_priv.public_key().public_bytes(
 )
 
 # persist server ephemeral private so can later derive key
-with open("/app/server_priv.pem", "wb") as f:
+with open("/app/tmp/server_priv.pem", "wb") as f:
     f.write(server_priv.private_bytes(
         encoding=serialization.Encoding.PEM,
         format=serialization.PrivateFormat.PKCS8,
@@ -27,10 +27,10 @@ with open("/app/server_priv.pem", "wb") as f:
     ))
 
 # write server ephemeral public so wrapper could read it if needed
-with open("/app/server_pub.hex", "wb") as f:
+with open("/app/tmp/server_pub.hex", "wb") as f:
     f.write(binascii.hexlify(server_pub))
 print("=== SERVER (lab) ===")
-print("Server ephemeral private key saved to /app/server_priv.pem (lab-only)")
+print("Server ephemeral private key saved to /app/tmp/server_priv.pem (lab-only)")
 print("Server ephemeral public (hex):", binascii.hexlify(server_pub).decode())
 print("====================\n")
 

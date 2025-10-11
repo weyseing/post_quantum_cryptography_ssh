@@ -23,7 +23,7 @@ print("Client ephemeral public (hex):", binascii.hexlify(client_pub).decode())
 time.sleep(1.0)
 server_pub_hex = None
 try:
-    with open("/app/server_pub.hex","r") as f:
+    with open("/app/tmp/server_pub.hex","r") as f:
         server_pub_hex = f.read().strip()
 except Exception as e:
     print("server_pub.hex not found in /app; please ensure server printed and wrote it:", e)

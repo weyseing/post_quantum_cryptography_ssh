@@ -47,7 +47,7 @@ services:
     container_name: toy_server
     volumes:
       - ./demo_shared:/app
-    command: ["python", "server.py"]
+    command: ["bash", "-c", "python server.py & tail -f /dev/null"]
     ports:
       - "2224:2222"
     networks:
