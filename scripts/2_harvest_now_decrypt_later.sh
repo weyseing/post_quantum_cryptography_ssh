@@ -1,55 +1,40 @@
 #!/bin/bash
 # harvest_now_decrypt_later.sh
 
-# pcap file path (example: /tmp/hndl_pqc.pcap)
-PCAP="$1" 
-
 # create folder
-OUTDIR="/tmp/hndl_$(basename $PCAP .pcap)"
+OUTDIR="/tmp/hndl"
 mkdir -p "$OUTDIR"
 
+# file path
+PCAP_CLASSIC="/tmp/capture_traffic/1_traffic_classic.pcap"
+PCAP_PQC="/tmp/capture_traffic/1_traffic_pqc.pcap"
+SSH_CLASSIC="/tmp/capture_traffic/2_ssh_classic_verbose.txt"
+SSH_PQC="/tmp/capture_traffic/2_ssh_pqc_verbose.txt"
+PCAP_VERBOSE_CLASSIC="$OUTDIR/1_pcap_verbose_classic.txt"
+PCAP_VERBOSE_PQC="$OUTDIR/1_pcap_verbose_pqc.txt"
+
 # full SSH block
-tshark -r "$PCAP" -Y ssh -V > "$OUTDIR/ssh_verbose.txt"
+tshark -r "$PCAP_CLASSIC" -Y ssh -V > "$PCAP_VERBOSE_CLASSIC"
+tshark -r "$PCAP_PQC" -Y ssh -V > "$PCAP_VERBOSE_PQC"
 
 # supported KEYEX algo
-grep -i "kex_algorithms string" "$OUTDIR/ssh_verbose.txt" \
+grep -i "kex_algorithms string" "$PCAP_VERBOSE_CLASSIC" \
   | sed -E 's/.*kex_algorithms string: //' \
   | awk '
     /ext-info-c/ { print "[CLIENT] " $0; next }
     /ext-info-s/ { print "[SERVER] " $0; next }
     { print "[UNKNOWN] " $0 }
-  ' > "$OUTDIR/kex_algo.txt"
+  ' > "$OUTDIR/2_supported_algo_classic.txt"
+
+grep -i "kex_algorithms string" "$PCAP_VERBOSE_PQC" \
+  | sed -E 's/.*kex_algorithms string: //' \
+  | awk '
+    /ext-info-c/ { print "[CLIENT] " $0; next }
+    /ext-info-s/ { print "[SERVER] " $0; next }
+    { print "[UNKNOWN] " $0 }
+  ' > "$OUTDIR/2_supported_algo_pqc.txt"
 
 # chosen KEYEX algo
-client_algos=$(grep -i "ext-info-c" /tmp/hndl_traffic_classic/ssh_verbose.txt | sed -E 's/.*string: //; s/,ext-info-c.*//')
-server_algos=$(grep -i "ext-info-s" /tmp/hndl_traffic_classic/ssh_verbose.txt | sed -E 's/.*string: //; s/,ext-info-s.*//')
+grep "debug1: kex: algorithm:" "$SSH_CLASSIC" | awk '{print $4}' > "$OUTDIR/3_chosen_algo_classic.txt"
+grep "debug1: kex: algorithm:" "$SSH_PQC" | awk '{print $4}' > "$OUTDIR/3_chosen_algo_pqc.txt"
 
-for algo in $(echo "$client_algos" | tr ',' ' '); do
-  if echo "$server_algos" | grep -qw "$algo"; then
-    echo "Negotiated KEX algorithm: $algo"
-    break
-  fi
-done
-
-# # 3) Extract KEX host key blocks (public key + signature)
-# egrep -n "KEX host key|EdDSA public key|Host signature data|Host signature type" "$OUTDIR/ssh_verbose.txt" > "$OUTDIR/hostkey_blocks.txt"
-# # You can open ssh_verbose.txt and copy the hex blocks referenced here.
-
-# # 4) Extract ephemeral public values (classical)
-# egrep -i "ECDH client's ephemeral public key|ECDH server's ephemeral public key|ephemeral public" "$OUTDIR/ssh_verbose.txt" > "$OUTDIR/ephemeral_publics.txt"
-
-# # 5) Dump raw frame hex for frames that contain 'Key Exchange' (useful to find PQ KEM bytes)
-# tshark -r "$PCAP" -x -Y 'ssh && frame contains "Key Exchange (method:"' > "$OUTDIR/kex_frames_hex.txt"
-
-# # 6) Dump raw frame hex for application data after the last observed KEX time (approx)
-# # Find last Key Exchange frame number
-# LAST_KEX_FRAME=$(egrep -n "Key Exchange \\(method:" "$OUTDIR/ssh_verbose.txt" | tail -n1 | cut -d: -f1 || true)
-# # fallback: if not found, just dump all SSH frames
-# if [ -n "$LAST_KEX_FRAME" ]; then
-#   # map the verbose line number back to frame number is manual — so also dump all ssh frame hex as fallback
-#   tshark -r "$PCAP" -x -Y 'ssh && tcp.port == 22' > "$OUTDIR/all_ssh_frames_hex.txt"
-# else
-#   tshark -r "$PCAP" -x -Y 'ssh && tcp.port == 22' > "$OUTDIR/all_ssh_frames_hex.txt"
-# fi
-
-echo "Extracts saved in $OUTDIR"
