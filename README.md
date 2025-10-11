@@ -33,6 +33,15 @@
 - **Client display:** Your client receives the packet, verifies its MAC, decrypts it, and displays the output on your terminal. 
 
 
+# Quantum Threat to Cryptography
+| Quantum Algorithm | Crypto It Threatens | Effect |
+|------------------|------------------|-------|
+| **Shor**         | RSA, DH, ECC, Curve25519/X25519, ECDSA, Ed25519 | Recovers private keys → breaks public-key crypto |
+| **Grover**       | AES, ChaCha20, SHA-2/3 | Quadratic speedup → halve effective key/hash strength |
+| **Kuperberg**    | Some group-based schemes | Subexponential attacks on niche problems |
+| **None known**   | PQC: sntrup761x25519, Kyber, NTRU, McEliece, SPHINCS+ | Believed quantum-resistant; attacker cannot compute session keys with known quantum algorithms |
+
+
 # Set Key Exchange Algo
 - **Configure settings**
 ```shell

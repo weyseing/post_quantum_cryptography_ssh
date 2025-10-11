@@ -38,3 +38,15 @@ grep -i "kex_algorithms string" "$PCAP_VERBOSE_PQC" \
 grep "debug1: kex: algorithm:" "$SSH_CLASSIC" | awk '{print $4}' > "$OUTDIR/3_chosen_algo_classic.txt"
 grep "debug1: kex: algorithm:" "$SSH_PQC" | awk '{print $4}' > "$OUTDIR/3_chosen_algo_pqc.txt"
 
+# harvest ephemeral public keys
+grep "ECDH client's ephemeral public key (Q_C):" "$PCAP_VERBOSE_CLASSIC" \
+  | sed -E 's/.*: (.*)/Client Ephemeral Public Key (A): \1/' > "$OUTDIR/4_ephemeral_pub_key_classic.txt"
+grep "ECDH server's ephemeral public key (Q_S):" "$PCAP_VERBOSE_CLASSIC" \
+  | sed -E 's/.*: (.*)/Server Ephemeral Public Key (B): \1/' >> "$OUTDIR/4_ephemeral_pub_key_classic.txt"
+
+OUTFILE="$OUTDIR/4_ephemeral_pub_key_pqc.txt"
+: > "$OUTFILE" 
+for SIDE in client server; do
+  KEY=$(grep -i "DH ${SIDE:0:1}" "$PCAP_VERBOSE_PQC" | sed -E 's/.*: *//' | tr -d ' \t\r\n')
+  [ -n "$KEY" ] && echo "${SIDE^} PQC Ephemeral Public Key:" >> "$OUTFILE" && echo "$KEY" | fold -w64 >> "$OUTFILE"
+done
