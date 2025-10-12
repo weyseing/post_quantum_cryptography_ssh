@@ -55,6 +55,8 @@ sleep 1
 
 # -- SSH CLIENT ---
 echo "5) Running client container (will send payload to server)..."
+
+# send payload
 docker compose up --no-deps --no-build --exit-code-from toy_client toy_client || true
 
 # wait for tcpdump to finish writing
