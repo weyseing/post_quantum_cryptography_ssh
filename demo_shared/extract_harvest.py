@@ -49,12 +49,13 @@ def main():
     parser.add_argument('--out-cipher', default='harvested_cipher.hex')
     args = parser.parse_args()
 
+    # pcap & steam
     if not os.path.exists(args.pcap):
         print("pcap not found:", args.pcap); sys.exit(1)
-
     pkts = rdpcap(args.pcap)
     streams = reassemble_stream(pkts, args.port)
 
+    # find payload
     for src,dst,sport,dport,txt in streams:
         if not txt:
             continue

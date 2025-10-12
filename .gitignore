@@ -3,3 +3,4 @@ tmp/
 
 demo_shared/*.pem
 demo_shared/*.hex
+!demo_shared/tmp/.gitkeep

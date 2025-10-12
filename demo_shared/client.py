@@ -40,7 +40,7 @@ print("Derived session key (client-side) (hex):", binascii.hexlify(session_key).
 # encrypt message (simulate SSH payload)
 aesgcm = AESGCM(session_key)
 nonce = os.urandom(12)
-plaintext = b"TOY-SSH: secret server file contents"
+plaintext = b"TOY-SSH: secret server file message"
 ciphertext = aesgcm.encrypt(nonce, plaintext, associated_data=None)
 
 # send client_pub, nonce, ciphertext as hex lines

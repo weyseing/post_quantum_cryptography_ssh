@@ -2,7 +2,7 @@
 FROM ubuntu:24.04
 
 # install dependencies
-RUN apt update && apt install -y openssh-server openssh-client iproute2 net-tools tcpdump vim
+RUN apt update && apt install -y openssh-server openssh-client iproute2 net-tools tcpdump vim tshark
 
 # root pass (for demo)
 RUN echo 'root:password' | chpasswd
